@@ -21,7 +21,8 @@
       </div>
     </div>
 
-    <ProductList />
+    <!-- Diperbaiki: kirim searchQuery sebagai prop -->
+    <ProductList :searchQuery="searchQuery" />
   </div>
 </template>
 

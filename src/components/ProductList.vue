@@ -17,7 +17,7 @@
 
     <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <div v-for="product in products" :key="product._id" class="overflow-hidden bg-white rounded-lg shadow-md">
-        <div class="h-48 overflow-hidden bg-gray-200">
+        <div class="h-48 overflow-hidden bg-neutral-50">
           <img 
             :src="product.image || '/img/meat-placeholder.jpg'" 
             :alt="product.name"
@@ -80,7 +80,18 @@ export default {
       event.target.src = '/img/meat-placeholder.jpg';
     },
     addToCart(product) {
-      // Implementasi logika add to cart nanti
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+      // Cek apakah produk sudah ada di keranjang berdasarkan _id
+      const existingProduct = cart.find(item => item._id === product._id);
+
+      if (!existingProduct) {
+      cart.push(product); // kalau belum ada, tambahkan
+    } else {
+        alert(`${product.name} sudah ada di keranjang`);
+      return;
+    }
+      localStorage.setItem('cart', JSON.stringify(cart));
       alert(`Produk ${product.name} ditambahkan ke keranjang`);
     }
   }

@@ -4,6 +4,12 @@ import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
 import Home from '../views/Home.vue';
 import NotFound from '../views/NotFound.vue';
+import CartView from '../views/CartView.vue';
+import Checkout from '../views/Checkout.vue';
+import AdminDashboard from '../views/AdminDashboard.vue';
+import TransaksiBerhasil from '../views/TransaksiBerhasil.vue';
+import TransaksiMenunggu from '../views/TransaksiMenunggu.vue';
+import TransaksiGagal from '../views/TransaksiGagal.vue';
 
 const routes = [
   { 
@@ -13,10 +19,37 @@ const routes = [
     meta: { requiresAuth: true }
   },
   { 
+    path: '/admin', 
+    name: 'AdminDashboard', 
+    component: AdminDashboard,
+    meta: { requiresAuth: true } // ⬅️ hanya bisa diakses jika login
+  },
+  { 
     path: '/login', 
     name: 'LoginView', 
     component: Login,
     meta: { guest: true }
+  },
+  {
+    path: '/cart',
+    name: 'CartView',
+    component: CartView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/checkout',
+    name: 'Checkout',
+    component: Checkout,
+    meta: { requiresAuth: true }
+  },
+  { path: '/transaksi-berhasil',
+    component: TransaksiBerhasil
+  },
+  { path: '/transaksi-menunggu',
+    component: TransaksiMenunggu
+  },
+  { path: '/transaksi-gagal',
+    component: TransaksiGagal
   },
   { 
     path: '/register', 
@@ -36,18 +69,15 @@ const router = createRouter({
   routes,
 });
 
-// Navigation Guards
+// Navigation Guard
 router.beforeEach((to, from, next) => {
   const isAuthenticated = authService.isAuthenticated();
-  
+
   if (to.meta.requiresAuth && !isAuthenticated) {
-    // Jika route memerlukan auth dan user belum login, redirect ke login
     next('/login');
   } else if (to.meta.guest && isAuthenticated) {
-    // Jika route untuk guest dan user sudah login, redirect ke home
     next('/');
   } else {
-    // Jika tidak ada kondisi khusus, lanjutkan navigasi
     next();
   }
 });
