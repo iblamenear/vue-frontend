@@ -52,8 +52,7 @@ export default {
     return {
       products: [],
       loading: true,
-      error: null,
-      cart: []
+      error: null
     };
   },
   mounted() {
@@ -79,20 +78,53 @@ export default {
     handleImageError(event) {
       event.target.src = '/img/meat-placeholder.jpg';
     },
-    addToCart(product) {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    async addToCart(product) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Harap login terlebih dahulu untuk menambahkan ke keranjang.');
+        return;
+      }
 
-      // Cek apakah produk sudah ada di keranjang berdasarkan _id
-      const existingProduct = cart.find(item => item._id === product._id);
+      try {
+        // Ambil keranjang dari backend
+        const res = await axios.get('http://localhost:5000/api/cart', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-      if (!existingProduct) {
-      cart.push(product); // kalau belum ada, tambahkan
-    } else {
-        alert(`${product.name} sudah ada di keranjang`);
-      return;
-    }
-      localStorage.setItem('cart', JSON.stringify(cart));
-      alert(`Produk ${product.name} ditambahkan ke keranjang`);
+        const currentCart = res.data.cart || [];
+
+        // Cek apakah produk sudah ada di keranjang
+        const exists = currentCart.find(item => item._id === product._id);
+
+        if (exists) {
+          alert(`${product.name} sudah ada di keranjang.`);
+          return;
+        }
+
+        // Tambahkan item baru
+        const newItem = {
+          _id: product._id,
+          quantity: 1,
+          berat: 100
+        };
+
+        const updatedCart = [...currentCart, newItem];
+
+        // Simpan ke backend (GUNAKAN PUT SESUAI BACKEND)
+        await axios.put('http://localhost:5000/api/cart', {
+          cart: updatedCart
+        }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        alert(`${product.name} berhasil ditambahkan ke keranjang.`);
+      } catch (err) {
+        console.error('Gagal tambah ke keranjang:', err);
+        alert('Terjadi kesalahan saat menambahkan ke keranjang.');
+      }
     }
   }
 };

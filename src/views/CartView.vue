@@ -2,9 +2,7 @@
   <div class="container px-4 py-8 mx-auto">
     <h1 class="mb-6 text-2xl font-bold text-gray-800">Keranjang Belanja</h1>
 
-    <div v-if="cart.length === 0" class="text-gray-600">
-      Keranjang Anda kosong.
-    </div>
+    <div v-if="cart.length === 0" class="text-gray-600">Keranjang Anda kosong.</div>
 
     <div v-else class="space-y-4">
       <div
@@ -29,7 +27,7 @@
               type="number"
               min="1"
               v-model.number="item.quantity"
-              @input="updateCart"
+              @input="saveCart"
               class="w-20 px-2 py-1 border rounded-md"
             />
           </div>
@@ -41,7 +39,7 @@
               min="50"
               step="50"
               v-model.number="item.berat"
-              @input="updateCart"
+              @input="saveCart"
               class="w-24 px-2 py-1 border rounded-md"
             />
           </div>
@@ -49,7 +47,12 @@
           <div>
             <p class="font-semibold text-right text-gray-700">Subtotal:</p>
             <p class="text-right text-indigo-600 font-bold">
-              Rp {{ formatPrice((item.price / unitDivisor(item.unit)) * item.berat * item.quantity) }}
+              Rp {{
+                formatPrice(
+                  (item.price / unitDivisor(item.unit)) *
+                  item.berat * item.quantity
+                )
+              }}
             </p>
           </div>
 
@@ -82,33 +85,57 @@ export default {
   },
   computed: {
     totalPrice() {
+      if (!Array.isArray(this.cart)) return 0;
       return this.cart.reduce((acc, item) => {
-        const unitValue = this.unitDivisor(item.unit);
-        return acc + ((item.price / unitValue) * item.berat * item.quantity);
+        const unit = item.unit || '100g';
+        const unitValue = this.unitDivisor(unit);
+        return acc + (item.price / unitValue) * item.berat * item.quantity;
       }, 0);
     }
   },
-  mounted() {
-    const storedCart = localStorage.getItem('cart');
-    const parsedCart = storedCart ? JSON.parse(storedCart) : [];
-
-    this.cart = parsedCart.map(item => ({
-      ...item,
-      quantity: item.quantity || 1,
-      berat: item.berat || 100,
-      unit: item.unit || '100g'
-    }));
+  async mounted() {
+    await this.loadCart();
   },
   methods: {
-    formatPrice(price) {
-      return new Intl.NumberFormat('id-ID').format(Math.round(price));
+    async loadCart() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:5000/api/cart', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        const data = await res.json();
+        this.cart = data.cart || [];
+      } catch (err) {
+        console.error('Gagal mengambil keranjang:', err);
+      }
     },
-    updateCart() {
-      localStorage.setItem('cart', JSON.stringify(this.cart));
+    async saveCart() {
+      try {
+        const token = localStorage.getItem('token');
+        await fetch('http://localhost:5000/api/cart', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            cart: this.cart.map(item => ({
+              _id: item._id,
+              quantity: item.quantity,
+              berat: item.berat
+            }))
+          })
+        });
+        // Jangan timpa this.cart agar tidak hilang datanya
+      } catch (err) {
+        console.error('Gagal menyimpan keranjang:', err);
+      }
     },
-    removeFromCart(id) {
-      this.cart = this.cart.filter(item => item._id !== id);
-      this.updateCart();
+    async removeFromCart(productId) {
+      this.cart = this.cart.filter(item => item._id !== productId);
+      await this.saveCart();
     },
     unitDivisor(unit) {
       switch ((unit || '').toLowerCase()) {
@@ -118,12 +145,14 @@ export default {
         default: return 1;
       }
     },
+    formatPrice(price) {
+      return new Intl.NumberFormat('id-ID').format(Math.round(price));
+    },
     goToCheckout() {
       if (this.cart.length === 0) {
-        alert("Keranjang kosong!");
+        alert('Keranjang kosong!');
         return;
       }
-      this.updateCart();
       this.$router.push('/checkout');
     }
   }

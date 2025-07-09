@@ -6,10 +6,13 @@ import Home from '../views/Home.vue';
 import NotFound from '../views/NotFound.vue';
 import CartView from '../views/CartView.vue';
 import Checkout from '../views/Checkout.vue';
+import UserProfile from '../views/UserProfile.vue';
 import AdminDashboard from '../views/AdminDashboard.vue';
 import TransaksiBerhasil from '../views/TransaksiBerhasil.vue';
 import TransaksiMenunggu from '../views/TransaksiMenunggu.vue';
 import TransaksiGagal from '../views/TransaksiGagal.vue';
+import OrderHistory from '../views/OrderHistory.vue';
+import LoginAdmin from '../views/LoginAdmin.vue'; // ✅ Tambahkan ini
 
 const routes = [
   { 
@@ -22,13 +25,19 @@ const routes = [
     path: '/admin', 
     name: 'AdminDashboard', 
     component: AdminDashboard,
-    meta: { requiresAuth: true } // ⬅️ hanya bisa diakses jika login
+    meta: { requiresAdmin: true } // ✅ Ganti ini
   },
   { 
     path: '/login', 
     name: 'LoginView', 
     component: Login,
     meta: { guest: true }
+  },
+  { 
+    path: '/login-admin', 
+    name: 'LoginAdmin', 
+    component: LoginAdmin,
+    meta: { guest: true } // ✅ Admin login halaman
   },
   {
     path: '/cart',
@@ -42,15 +51,21 @@ const routes = [
     component: Checkout,
     meta: { requiresAuth: true }
   },
-  { path: '/transaksi-berhasil',
-    component: TransaksiBerhasil
+  {
+    path: '/order',
+    name: 'OrderHistory',
+    component: OrderHistory,
+    meta: { requiresAuth: true }
   },
-  { path: '/transaksi-menunggu',
-    component: TransaksiMenunggu
+  {
+    path: '/profile',
+    name: 'UserProfile',
+    component: UserProfile,
+    meta: { requiresAuth: true }
   },
-  { path: '/transaksi-gagal',
-    component: TransaksiGagal
-  },
+  { path: '/transaksi-berhasil', component: TransaksiBerhasil },
+  { path: '/transaksi-menunggu', component: TransaksiMenunggu },
+  { path: '/transaksi-gagal', component: TransaksiGagal },
   { 
     path: '/register', 
     name: 'RegisterView', 
@@ -69,13 +84,16 @@ const router = createRouter({
   routes,
 });
 
-// Navigation Guard
+// ✅ Navigation Guard yang mendukung user & admin token
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = authService.isAuthenticated();
+  const isUser = authService.isAuthenticated();
+  const isAdmin = !!localStorage.getItem('admin_token'); // ✅ Deteksi admin token
 
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  if (to.meta.requiresAuth && !isUser) {
     next('/login');
-  } else if (to.meta.guest && isAuthenticated) {
+  } else if (to.meta.requiresAdmin && !isAdmin) {
+    next('/login-admin');
+  } else if (to.meta.guest && (isUser || isAdmin)) {
     next('/');
   } else {
     next();
