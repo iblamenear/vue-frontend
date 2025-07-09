@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import authService from '../services/authService';
+
 import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
 import Home from '../views/Home.vue';
@@ -12,32 +12,39 @@ import TransaksiBerhasil from '../views/TransaksiBerhasil.vue';
 import TransaksiMenunggu from '../views/TransaksiMenunggu.vue';
 import TransaksiGagal from '../views/TransaksiGagal.vue';
 import OrderHistory from '../views/OrderHistory.vue';
-import LoginAdmin from '../views/LoginAdmin.vue'; // ✅ Tambahkan ini
+import LoginAdmin from '../views/LoginAdmin.vue';
 
 const routes = [
-  { 
-    path: '/', 
-    name: 'HomeView', 
+  { path: '/', redirect: '/login' },
+  {
+    path: '/home',
+    name: 'HomeView',
     component: Home,
     meta: { requiresAuth: true }
   },
-  { 
-    path: '/admin', 
-    name: 'AdminDashboard', 
+  {
+    path: '/admin',
+    name: 'AdminDashboard',
     component: AdminDashboard,
-    meta: { requiresAdmin: true } // ✅ Ganti ini
+    meta: { requiresAdmin: true }
   },
-  { 
-    path: '/login', 
-    name: 'LoginView', 
+  {
+    path: '/login',
+    name: 'LoginView',
     component: Login,
     meta: { guest: true }
   },
-  { 
-    path: '/login-admin', 
-    name: 'LoginAdmin', 
+  {
+    path: '/login-admin',
+    name: 'LoginAdmin',
     component: LoginAdmin,
-    meta: { guest: true } // ✅ Admin login halaman
+    meta: { guest: true }
+  },
+  {
+    path: '/register',
+    name: 'RegisterView',
+    component: Register,
+    meta: { guest: true }
   },
   {
     path: '/cart',
@@ -66,12 +73,6 @@ const routes = [
   { path: '/transaksi-berhasil', component: TransaksiBerhasil },
   { path: '/transaksi-menunggu', component: TransaksiMenunggu },
   { path: '/transaksi-gagal', component: TransaksiGagal },
-  { 
-    path: '/register', 
-    name: 'RegisterView', 
-    component: Register,
-    meta: { guest: true }
-  },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
@@ -84,20 +85,27 @@ const router = createRouter({
   routes,
 });
 
-// ✅ Navigation Guard yang mendukung user & admin token
 router.beforeEach((to, from, next) => {
-  const isUser = authService.isAuthenticated();
-  const isAdmin = !!localStorage.getItem('admin_token'); // ✅ Deteksi admin token
+  const isUser = !!localStorage.getItem('token');
+  const isAdmin = !!sessionStorage.getItem('admin_token');
 
-  if (to.meta.requiresAuth && !isUser) {
-    next('/login');
-  } else if (to.meta.requiresAdmin && !isAdmin) {
-    next('/login-admin');
-  } else if (to.meta.guest && (isUser || isAdmin)) {
-    next('/');
-  } else {
-    next();
+  // Akses admin (harus admin)
+  if (to.meta.requiresAdmin && !isAdmin) {
+    return next('/login-admin');
   }
+
+  // Akses user (harus user)
+  if (to.meta.requiresAuth && !isUser) {
+    return next('/login');
+  }
+
+  // Guest routes (login/register)
+  if (to.meta.guest) {
+    if (to.path === '/login' && isUser) return next('/home');
+    if (to.path === '/login-admin' && isAdmin) return next('/admin');
+  }
+
+  return next();
 });
 
 export default router;

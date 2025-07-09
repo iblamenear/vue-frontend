@@ -124,7 +124,7 @@ export default {
       this.loading = true;
       this.error = '';
       try {
-        const res = await fetch('http://localhost:5000/api/auth/login', {
+        const res = await fetch('http://localhost:5000/api/auth/login-user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: this.email, password: this.password })

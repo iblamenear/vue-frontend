@@ -252,7 +252,7 @@ export default {
   methods: {
     async fetchProducts() {
       try {
-        const token = localStorage.getItem('admin_token');
+        const token = sessionStorage.getItem('admin_token');
         const res = await axios.get('http://localhost:5000/api/products', {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -263,7 +263,7 @@ export default {
     },
     async fetchUsersWithTransactions() {
       try {
-        const token = localStorage.getItem('admin_token');
+        const token = sessionStorage.getItem('admin_token');
         const res = await axios.get('http://localhost:5000/api/auth/all-users-with-transactions', {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -274,7 +274,7 @@ export default {
     },
     async updateStatus(transactionId, status) {
       try {
-        const token = localStorage.getItem('admin_token');
+        const token = sessionStorage.getItem('admin_token');
         await axios.put(`http://localhost:5000/api/transactions/status/${transactionId}`, {
           statusPengiriman: status
         }, {
@@ -288,7 +288,7 @@ export default {
     },
     async submitProduct() {
       try {
-        const token = localStorage.getItem('admin_token');
+        const token = sessionStorage.getItem('admin_token');
         const res = await axios.post('http://localhost:5000/api/products', this.form, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -308,7 +308,7 @@ export default {
     },
     async updateProduct() {
       try {
-        const token = localStorage.getItem('admin_token');
+        const token = sessionStorage.getItem('admin_token');
         await axios.put(`http://localhost:5000/api/products/${this.editId}`, this.form, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -324,7 +324,7 @@ export default {
     async deleteProduct(id) {
       if (confirm('Yakin ingin menghapus produk ini?')) {
         try {
-          const token = localStorage.getItem('admin_token');
+          const token = sessionStorage.getItem('admin_token');
           await axios.delete(`http://localhost:5000/api/products/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
@@ -349,14 +349,14 @@ export default {
       return new Intl.NumberFormat('id-ID').format(Math.round(number));
     },
     checkAuth() {
-      const token = localStorage.getItem('admin_token');
+      const token = sessionStorage.getItem('admin_token');
       if (!token) {
         alert('Anda harus login sebagai admin!');
         this.$router.push('/login-admin');
       }
     },
     logout() {
-      localStorage.removeItem('admin_token');
+      sessionStorage.removeItem('admin_token');
       this.$router.push('/login-admin');
     },
     toggleUserTransactions(userId) {

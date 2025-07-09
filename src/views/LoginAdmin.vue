@@ -49,29 +49,32 @@ export default {
   },
   methods: {
     async loginAdmin() {
+      this.error = '';
       try {
-        const res = await axios.post('http://localhost:5000/api/auth/login', {
+        const res = await axios.post('http://localhost:5000/api/auth/login-admin', {
           email: this.email,
           password: this.password
         });
 
         const { token, role } = res.data;
 
-        // ✅ Pastikan ini admin
         if (role !== 'admin') {
           this.error = 'Akun ini bukan admin.';
           return;
         }
 
-        // ✅ Simpan token khusus admin
-        localStorage.setItem('admin_token', token);
-
-        // ✅ Redirect ke dashboard admin
+        sessionStorage.setItem('admin_token', token); // ✅ SIMPAN TOKEN ADMIN DI SESSION
         this.$router.push('/admin');
       } catch (err) {
         this.error = 'Login gagal. Periksa kembali email dan password.';
         console.error('Login admin error:', err);
       }
+    }
+  },
+  mounted() {
+    const adminToken = sessionStorage.getItem('admin_token');
+    if (adminToken) {
+      this.$router.push('/admin');
     }
   }
 };
