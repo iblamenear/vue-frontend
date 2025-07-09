@@ -13,6 +13,8 @@ import TransaksiMenunggu from '../views/TransaksiMenunggu.vue';
 import TransaksiGagal from '../views/TransaksiGagal.vue';
 import OrderHistory from '../views/OrderHistory.vue';
 import LoginAdmin from '../views/LoginAdmin.vue';
+import DashboardKurir from '../views/DashboardKurir.vue';
+import LoginKurir from '../views/LoginKurir.vue';
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -38,6 +40,18 @@ const routes = [
     path: '/login-admin',
     name: 'LoginAdmin',
     component: LoginAdmin,
+    meta: { guest: true }
+  },
+  {
+    path: '/kurir',
+    name: 'DashboardKurir',
+    component: DashboardKurir,
+    meta: { requiresCourier: true }
+  },
+  {
+    path: '/login-kurir',
+    name: 'LoginKurir',
+    component: LoginKurir,
     meta: { guest: true }
   },
   {
@@ -88,6 +102,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const isUser = !!localStorage.getItem('token');
   const isAdmin = !!sessionStorage.getItem('admin_token');
+  const isCourier = !!sessionStorage.getItem('courier_token');
 
   // Akses admin (harus admin)
   if (to.meta.requiresAdmin && !isAdmin) {
@@ -99,10 +114,17 @@ router.beforeEach((to, from, next) => {
     return next('/login');
   }
 
+  // Akses kurir (harus kurir)
+  if (to.meta.requiresCourier && !isCourier) {
+    console.log('Anda harus login sebagai kurir!');
+    return next('/login-kurir');
+  }
+
   // Guest routes (login/register)
   if (to.meta.guest) {
     if (to.path === '/login' && isUser) return next('/home');
     if (to.path === '/login-admin' && isAdmin) return next('/admin');
+    if (to.path === '/login-kurir' && isCourier) return next('/kurir');
   }
 
   return next();

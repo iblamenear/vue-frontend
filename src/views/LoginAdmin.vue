@@ -1,37 +1,40 @@
 <template>
-  <div class="max-w-md mx-auto py-10 px-4">
-    <h2 class="text-2xl font-bold text-center mb-6">Login Admin</h2>
+  <div class="min-h-screen flex items-center justify-center bg-gray-100">
+    <div class="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
+      <h1 class="text-3xl font-bold text-center text-indigo-600 mb-2">Carne'&Co</h1>
+      <h2 class="text-xl font-semibold text-center text-gray-800 mb-6">Login Admin</h2>
 
-    <form @submit.prevent="loginAdmin" class="space-y-4">
-      <div>
-        <label class="block mb-1 font-medium text-gray-700">Email</label>
-        <input
-          v-model="email"
-          type="email"
-          required
-          class="w-full px-4 py-2 border rounded-md"
-        />
-      </div>
+      <form @submit.prevent="loginAdmin" class="space-y-4">
+        <div>
+          <label class="block mb-1 font-medium text-gray-700">Email</label>
+          <input
+            v-model="email"
+            type="email"
+            required
+            class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
 
-      <div>
-        <label class="block mb-1 font-medium text-gray-700">Password</label>
-        <input
-          v-model="password"
-          type="password"
-          required
-          class="w-full px-4 py-2 border rounded-md"
-        />
-      </div>
+        <div>
+          <label class="block mb-1 font-medium text-gray-700">Password</label>
+          <input
+            v-model="password"
+            type="password"
+            required
+            class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
 
-      <button
-        type="submit"
-        class="w-full py-2 px-4 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-      >
-        Login sebagai Admin
-      </button>
+        <button
+          type="submit"
+          class="w-full py-2 px-4 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+        >
+          Login sebagai Admin
+        </button>
 
-      <p v-if="error" class="text-red-600 mt-2 text-center">{{ error }}</p>
-    </form>
+        <p v-if="error" class="text-red-600 mt-2 text-center">{{ error }}</p>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -63,7 +66,7 @@ export default {
           return;
         }
 
-        sessionStorage.setItem('admin_token', token); // ✅ SIMPAN TOKEN ADMIN DI SESSION
+        sessionStorage.setItem('admin_token', token);
         this.$router.push('/admin');
       } catch (err) {
         this.error = 'Login gagal. Periksa kembali email dan password.';

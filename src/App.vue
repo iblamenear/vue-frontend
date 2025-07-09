@@ -1,7 +1,17 @@
 <template>
   <div class="flex flex-col min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header v-if="$route.path !== '/login' && $route.path !== '/register' && $route.path !== '/admin'" class="bg-white shadow">
+    <!-- Header (navbar) tidak muncul di halaman login, register, admin, login-admin, login-kurir -->
+    <header
+      v-if="
+        $route.path !== '/login' &&
+        $route.path !== '/register' &&
+        $route.path !== '/admin' &&
+        $route.path !== '/login-admin' &&
+        $route.path !== '/login-kurir' &&
+        $route.path !== '/kurir'
+      "
+      class="bg-white shadow"
+    >
       <div class="container flex items-center justify-between px-4 py-4 mx-auto">
         <router-link to="/" class="text-2xl font-bold text-indigo-600">Carne'&Co</router-link>
 
@@ -93,12 +103,12 @@
     </main>
 
     <!-- Footer -->
-    <footer v-if="$route.path !== '/login' && $route.path !== '/register' && $route.path !== '/admin'" class="py-6 bg-white">
+    <footer class="py-6 bg-white">
       <div class="container px-4 mx-auto">
         <div class="flex flex-col items-center md:flex-row md:justify-between">
           <p class="text-sm text-gray-600">&copy; {{ new Date().getFullYear() }} Carne'&Co. All rights reserved.</p>
           <div class="flex mt-4 space-x-6 md:mt-0">
-            <!-- Footer icons... -->
+            <!-- Footer icons bisa ditambahkan di sini -->
           </div>
         </div>
       </div>

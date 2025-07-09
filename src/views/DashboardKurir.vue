@@ -15,46 +15,58 @@
 
     <!-- Konten -->
     <div class="container mx-auto px-4">
-      <h2 class="text-2xl font-semibold text-gray-800 mb-6">Pengiriman Aktif</h2>
+      <h2 class="text-2xl font-semibold text-gray-800 mb-6">Semua Pengiriman</h2>
 
       <div v-if="transactions.length > 0" class="space-y-4">
         <div
           v-for="trx in transactions"
           :key="trx._id"
-          class="bg-white border rounded shadow p-4"
+          class="bg-white border rounded shadow p-4 flex flex-col md:flex-row md:items-center md:justify-between"
         >
-          <div class="mb-2">
+          <div>
             <p class="text-sm text-gray-700">
               🧾 Order ID: <strong>{{ trx.midtransOrderId || 'Tanpa ID' }}</strong>
             </p>
             <p class="text-sm text-gray-700">
-              📦 Status: <span class="font-medium text-yellow-600">{{ trx.statusPengiriman }}</span>
+              📦 Status: 
+              <span
+                class="font-medium"
+                :class="{
+                  'text-yellow-600': trx.statusPengiriman === 'diproses',
+                  'text-green-600': trx.statusPengiriman === 'dikirim',
+                  'text-gray-500': trx.statusPengiriman === 'sampai'
+                }"
+              >
+                {{ trx.statusPengiriman }}
+              </span>
             </p>
+            <p class="text-sm text-gray-700">👤 Nama: <strong>{{ trx.userId?.name }}</strong></p>
+            <p class="text-sm text-gray-700">📞 No HP: {{ trx.userId?.phone }}</p>
+            <p class="text-sm text-gray-700">🏠 Alamat: {{ trx.userId?.address }}</p>
             <p class="text-sm text-gray-600">
               🕒 {{ new Date(trx.createdAt).toLocaleString('id-ID') }}
             </p>
           </div>
 
-          <!-- Info User -->
-          <div class="mt-2 text-sm text-gray-700 space-y-1">
-            <p>👤 <strong>{{ trx.userId.name }}</strong></p>
-            <p>📍 {{ trx.userId.address }}</p>
-            <p>📱 {{ trx.userId.phone }}</p>
-            <p>✉️ {{ trx.userId.email }}</p>
-          </div>
-
-          <div class="mt-4">
+          <div class="mt-4 md:mt-0">
             <button
+              v-if="trx.statusPengiriman === 'dikirim'"
               @click="markAsDelivered(trx._id)"
               class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
             >
-              Tandai Sampai
+              Selesaikan Pengiriman
             </button>
+            <p
+              v-else
+              class="px-4 py-2 text-sm text-gray-500 border border-gray-300 rounded"
+            >
+              Menunggu admin kirim
+            </p>
           </div>
         </div>
       </div>
 
-      <p v-else class="text-gray-500">Tidak ada pengiriman aktif saat ini.</p>
+      <p v-else class="text-gray-500">Belum ada pengiriman yang tersedia saat ini.</p>
     </div>
   </div>
 </template>
@@ -94,7 +106,7 @@ export default {
               headers: { Authorization: `Bearer ${token}` }
             }
           );
-          this.fetchTransactions(); // reload daftar
+          this.fetchTransactions();
         } catch (err) {
           console.error('Gagal update status:', err);
         }
