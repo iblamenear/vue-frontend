@@ -1,60 +1,40 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Navbar -->
-    <nav class="bg-white shadow mb-6">
-      <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-green-600">Carne'&Co - Kurir</h1>
-        <button
-          @click="logout"
-          class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-        >
-          Logout
-        </button>
-      </div>
-    </nav>
+  <div class="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div class="max-w-md w-full bg-white shadow-lg rounded-xl p-8">
+      <h2 class="text-2xl font-bold text-center text-green-700 mb-6">Login Kurir</h2>
 
-    <!-- Konten -->
-    <div class="container mx-auto px-4">
-      <h2 class="text-2xl font-semibold text-gray-800 mb-6">Pengiriman Aktif</h2>
-
-      <div v-if="transactions.length > 0" class="space-y-4">
-        <div
-          v-for="trx in transactions"
-          :key="trx._id"
-          class="bg-white border rounded shadow p-4"
-        >
-          <div class="mb-2">
-            <p class="text-sm text-gray-700">
-              🧾 Order ID: <strong>{{ trx.midtransOrderId || 'Tanpa ID' }}</strong>
-            </p>
-            <p class="text-sm text-gray-700">
-              📦 Status: <span class="font-medium text-yellow-600">{{ trx.statusPengiriman }}</span>
-            </p>
-            <p class="text-sm text-gray-600">
-              🕒 {{ new Date(trx.createdAt).toLocaleString('id-ID') }}
-            </p>
-          </div>
-
-          <!-- Info User -->
-          <div class="mt-2 text-sm text-gray-700 space-y-1">
-            <p>👤 <strong>{{ trx.userId.name }}</strong></p>
-            <p>📍 {{ trx.userId.address }}</p>
-            <p>📱 {{ trx.userId.phone }}</p>
-            <p>✉️ {{ trx.userId.email }}</p>
-          </div>
-
-          <div class="mt-4">
-            <button
-              @click="markAsDelivered(trx._id)"
-              class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              Tandai Sampai
-            </button>
-          </div>
+      <form @submit.prevent="loginKurir" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Email</label>
+          <input
+            v-model="email"
+            type="email"
+            required
+            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+          />
         </div>
-      </div>
 
-      <p v-else class="text-gray-500">Tidak ada pengiriman aktif saat ini.</p>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Password</label>
+          <input
+            v-model="password"
+            type="password"
+            required
+            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="w-full py-2 px-4 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition"
+        >
+          Login
+        </button>
+      </form>
+
+      <p v-if="errorMessage" class="text-sm text-red-500 mt-4 text-center">
+        {{ errorMessage }}
+      </p>
     </div>
   </div>
 </template>
@@ -63,56 +43,47 @@
 import axios from 'axios';
 
 export default {
-  name: 'DashboardKurir',
+  name: 'LoginKurir',
   data() {
     return {
-      transactions: []
+      email: '',
+      password: '',
+      errorMessage: ''
     };
   },
   methods: {
-    async fetchTransactions() {
+    async loginKurir() {
       try {
-        const token = sessionStorage.getItem('courier_token');
-        const res = await axios.get('http://localhost:5000/api/transactions/for-courier', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+        const res = await axios.post('http://localhost:5000/api/auth/login-courier', {
+          email: this.email,
+          password: this.password
         });
-        this.transactions = res.data;
-      } catch (err) {
-        console.error('Gagal memuat transaksi:', err);
-      }
-    },
-    async markAsDelivered(id) {
-      if (confirm('Tandai pengiriman ini sebagai selesai?')) {
-        try {
-          const token = sessionStorage.getItem('courier_token');
-          await axios.put(
-            `http://localhost:5000/api/transactions/status/${id}`,
-            { statusPengiriman: 'sampai' },
-            {
-              headers: { Authorization: `Bearer ${token}` }
-            }
-          );
-          this.fetchTransactions(); // reload daftar
-        } catch (err) {
-          console.error('Gagal update status:', err);
+
+        const token = res.data.token;
+        if (!token) {
+          this.errorMessage = 'Token tidak ditemukan di response.';
+          return;
         }
+
+        sessionStorage.setItem('courier_token', token);
+        this.$router.push('/kurir');
+      } catch (err) {
+        console.error('Login gagal:', err);
+        this.errorMessage = err.response?.data?.message || 'Login gagal. Coba lagi.';
       }
-    },
-    logout() {
-      sessionStorage.removeItem('courier_token');
-      this.$router.push('/login-kurir');
     }
   },
   mounted() {
     const token = sessionStorage.getItem('courier_token');
-    if (!token) {
-      alert('Anda harus login sebagai kurir!');
-      this.$router.push('/login-kurir');
-    } else {
-      this.fetchTransactions();
+    if (token) {
+      this.$router.push('/kurir');
     }
   }
 };
 </script>
+
+<style scoped>
+body {
+  background-color: #f7fafc;
+}
+</style>

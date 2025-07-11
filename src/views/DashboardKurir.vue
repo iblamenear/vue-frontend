@@ -23,42 +23,52 @@
           :key="trx._id"
           class="bg-white border rounded shadow p-4 flex flex-col md:flex-row md:items-center md:justify-between"
         >
-          <div>
-            <p class="text-sm text-gray-700">
-              🧾 Order ID: <strong>{{ trx.midtransOrderId || 'Tanpa ID' }}</strong>
-            </p>
-            <p class="text-sm text-gray-700">
-              📦 Status: 
-              <span
-                class="font-medium"
-                :class="{
-                  'text-yellow-600': trx.statusPengiriman === 'diproses',
-                  'text-green-600': trx.statusPengiriman === 'dikirim',
-                  'text-gray-500': trx.statusPengiriman === 'sampai'
-                }"
-              >
-                {{ trx.statusPengiriman }}
-              </span>
-            </p>
+          <div class="w-full md:w-2/3 space-y-1">
+            <div class="flex justify-between">
+              <p class="text-sm text-gray-700 font-semibold">
+                🧾 Order ID: <span class="text-indigo-600">{{ trx.midtransOrderId || 'Tanpa ID' }}</span>
+              </p>
+            </div>
             <p class="text-sm text-gray-700">👤 Nama: <strong>{{ trx.userId?.name }}</strong></p>
             <p class="text-sm text-gray-700">📞 No HP: {{ trx.userId?.phone }}</p>
             <p class="text-sm text-gray-700">🏠 Alamat: {{ trx.userId?.address }}</p>
             <p class="text-sm text-gray-600">
               🕒 {{ new Date(trx.createdAt).toLocaleString('id-ID') }}
             </p>
+
+            <div v-if="trx.returDisetujui" class="text-sm mt-1">
+              <span class="font-medium text-green-600">✅ Retur Disetujui</span>
+            </div>
           </div>
 
-          <div class="mt-4 md:mt-0">
+          <div class="mt-4 md:mt-0 space-y-2">
             <button
               v-if="trx.statusPengiriman === 'dikirim'"
               @click="markAsDelivered(trx._id)"
               class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
             >
-              Selesaikan Pengiriman
+              Pesanan telah Sampai
             </button>
+
+            <button
+              v-if="trx.returStatus === 'disetujui'"
+              @click="tandaiSudahDijemput(trx._id)"
+              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              🚚 Tandai Sudah Dijemput
+            </button>
+
+            <button
+              v-if="trx.returStatus === 'kurir_menjemput'"
+              @click="updateReturProgress(trx._id, 'diperiksa')"
+              class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+            >
+              🧾 Tandai Sudah Diterima Admin
+            </button>
+
             <p
-              v-else
-              class="px-4 py-2 text-sm text-gray-500 border border-gray-300 rounded"
+              v-if="!trx.returStatus && trx.statusPengiriman !== 'dikirim'"
+              class="px-4 py-2 text-sm text-gray-500 border border-gray-300 rounded text-center"
             >
               Menunggu admin kirim
             </p>
@@ -85,6 +95,8 @@ export default {
     async fetchTransactions() {
       try {
         const token = sessionStorage.getItem('courier_token');
+        if (!token) return;
+
         const res = await axios.get('http://localhost:5000/api/transactions/for-courier', {
           headers: {
             Authorization: `Bearer ${token}`
@@ -93,6 +105,7 @@ export default {
         this.transactions = res.data;
       } catch (err) {
         console.error('Gagal memuat transaksi:', err);
+        alert('Gagal mengambil data transaksi.');
       }
     },
     async markAsDelivered(id) {
@@ -112,19 +125,58 @@ export default {
         }
       }
     },
+    async tandaiSudahDijemput(id) {
+      if (confirm('Tandai barang retur ini sudah dijemput?')) {
+        try {
+          const token = sessionStorage.getItem('courier_token');
+          await axios.patch(
+            `http://localhost:5000/api/transactions/retur-status/${id}`,
+            { returStatus: 'kurir_menjemput' },
+            {
+              headers: { Authorization: `Bearer ${token}` }
+            }
+          );
+          this.fetchTransactions();
+        } catch (err) {
+          console.error('Gagal update status retur:', err);
+        }
+      }
+    },
+    async updateReturProgress(id, nextStatus) {
+  if (confirm(`Ubah status retur menjadi ${nextStatus}?`)) {
+    try {
+      const token = sessionStorage.getItem('courier_token');
+      await axios.patch(
+        `http://localhost:5000/api/transactions/retur-status/${id}`,
+        { returStatus: nextStatus },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      // ❌ Jangan fetch ulang semua transaksi, cukup hapus dari array
+      this.transactions = this.transactions.filter(trx => trx._id !== id);
+    } catch (err) {
+      console.error('Gagal update status retur:', err);
+    }
+  }
+},
     logout() {
       sessionStorage.removeItem('courier_token');
       this.$router.push('/login-kurir');
     }
   },
-  mounted() {
+  async mounted() {
     const token = sessionStorage.getItem('courier_token');
     if (!token) {
       alert('Anda harus login sebagai kurir!');
       this.$router.push('/login-kurir');
     } else {
-      this.fetchTransactions();
+      await this.fetchTransactions();
     }
   }
 };
 </script>
+
+<style scoped>
+</style>

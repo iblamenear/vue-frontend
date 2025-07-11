@@ -6,7 +6,7 @@
 
       <div class="flex justify-center gap-4">
         <router-link to="/" class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition">Beranda</router-link>
-        <router-link to="/profil/pesanan" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition">Lihat Pesanan</router-link>
+        <router-link to="/order" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition">Lihat Pesanan</router-link>
       </div>
     </div>
   </div>

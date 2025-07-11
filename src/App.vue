@@ -8,7 +8,8 @@
         $route.path !== '/admin' &&
         $route.path !== '/login-admin' &&
         $route.path !== '/login-kurir' &&
-        $route.path !== '/kurir'
+        $route.path !== '/kurir' &&
+        $route.path !== '/manage-users'
       "
       class="bg-white shadow"
     >

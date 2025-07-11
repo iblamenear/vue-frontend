@@ -15,6 +15,7 @@ import OrderHistory from '../views/OrderHistory.vue';
 import LoginAdmin from '../views/LoginAdmin.vue';
 import DashboardKurir from '../views/DashboardKurir.vue';
 import LoginKurir from '../views/LoginKurir.vue';
+import ManageUsers from '../views/ManageUsers.vue';
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -41,6 +42,12 @@ const routes = [
     name: 'LoginAdmin',
     component: LoginAdmin,
     meta: { guest: true }
+  },
+  {
+  path: '/manage-users',
+  name: 'ManageUsers',
+  component: ManageUsers,
+  meta: { requiresAdmin: true }
   },
   {
     path: '/kurir',

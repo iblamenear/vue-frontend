@@ -5,8 +5,9 @@
       <p class="text-lg text-gray-600">Toko daging segar berkualitas tinggi</p>
     </div>
 
-    <div class="mb-6">
-      <div class="relative max-w-xl">
+    <!-- Search + Dropdown -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
+      <div class="relative w-full sm:w-2/3">
         <input
           type="text"
           v-model="searchQuery"
@@ -19,10 +20,21 @@
           </svg>
         </div>
       </div>
+
+      <select
+        v-model="selectedCategory"
+        class="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      >
+        <option value="">Semua Kategori</option>
+        <option>Daging</option>
+        <option>Ayam & Bebek</option>
+        <option>Seafood</option>
+        <option>Produk Olahan</option>
+      </select>
     </div>
 
-    <!-- Diperbaiki: kirim searchQuery sebagai prop -->
-    <ProductList :searchQuery="searchQuery" />
+    <!-- Kirim prop searchQuery dan selectedCategory ke ProductList -->
+    <ProductList :searchQuery="searchQuery" :category="selectedCategory" />
   </div>
 </template>
 
@@ -36,6 +48,7 @@ export default {
   data() {
     return {
       searchQuery: '',
+      selectedCategory: '',
       user: null
     };
   },

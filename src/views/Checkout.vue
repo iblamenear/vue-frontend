@@ -133,10 +133,20 @@ export default {
         const token = res.data.token;
 
         window.snap.pay(token, {
-          onSuccess: (result) => {
-            console.log('✔️ Pembayaran sukses:', result);
-            window.location.href = '/transaksi-berhasil';
-          },
+          onSuccess: async (result) => {
+  console.log('✔️ Pembayaran sukses:', result);
+  try {
+    const token = localStorage.getItem('token');
+    await axios.delete('http://localhost:5000/api/cart/clear', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    console.log('🧹 Keranjang berhasil dikosongkan');
+  } catch (err) {
+    console.error('❌ Gagal mengosongkan keranjang:', err);
+  }
+
+  window.location.href = '/transaksi-berhasil';
+},
           onPending: (result) => {
             console.log('⏳ Pembayaran pending:', result);
             window.location.href = '/transaksi-menunggu';

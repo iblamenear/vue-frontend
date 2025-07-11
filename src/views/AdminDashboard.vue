@@ -4,16 +4,24 @@
     <nav class="bg-white shadow-md mb-8">
       <div class="container mx-auto px-4 py-4 flex justify-between items-center">
         <h1 class="text-xl font-bold text-indigo-600">Carne'&Co - Admin</h1>
-        <button
-          @click="logout"
-          class="px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600"
-        >
-          Logout
-        </button>
+        <div class="flex gap-3">
+          <button
+            @click="$router.push('/manage-users')"
+            class="px-4 py-2 text-white bg-indigo-500 rounded hover:bg-indigo-600"
+          >
+            Kelola User
+          </button>
+          <button
+            @click="logout"
+            class="px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600"
+          >
+            Logout
+          </button>
+        </div>
       </div>
     </nav>
 
-    <!-- Konten -->
+    <!-- Konten Produk -->
     <div class="container px-4 py-8 mx-auto">
       <div class="grid md:grid-cols-2 gap-10">
         <!-- Form Tambah / Edit Produk -->
@@ -65,6 +73,21 @@
               ></textarea>
             </div>
 
+            <div>
+              <label class="block mb-1 text-sm font-medium text-gray-700">Kategori</label>
+              <select
+                v-model="form.category"
+                required
+                class="w-full px-4 py-2 border rounded-md"
+              >
+                <option disabled value="">-- Pilih Kategori --</option>
+                <option>Daging</option>
+                <option>Ayam & Bebek</option>
+                <option>Seafood</option>
+                <option>Produk Olahan</option>
+              </select>
+            </div>
+
             <div class="flex gap-3">
               <button type="submit" class="px-4 py-2 text-white bg-indigo-600 rounded hover:bg-indigo-700">
                 {{ isEditing ? 'Update Produk' : 'Tambah Produk' }}
@@ -109,7 +132,7 @@
                 <div>
                   <h3 class="font-bold text-lg">{{ product.name }}</h3>
                   <p class="text-sm text-gray-500">
-                    Rp {{ formatPrice(product.price) }} / {{ product.unit || '100g' }}
+                    Rp {{ formatPrice(product.price) }} / {{ product.unit || '100g' }} - {{ product.category }}
                   </p>
                 </div>
                 <div class="flex gap-3">
@@ -126,94 +149,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Daftar User & Transaksi -->
-      <div class="mt-16">
-        <h2 class="text-xl font-semibold text-gray-700 mb-4">Daftar User & Transaksi</h2>
-        <div v-if="users.length > 0" class="space-y-6">
-          <div
-            v-for="user in users"
-            :key="user._id"
-            class="border rounded p-4 bg-white shadow-sm"
-          >
-            <div class="flex justify-between items-center">
-              <div>
-                <h3 class="font-semibold text-lg">
-                  {{ user.name }}
-                  <span class="text-sm text-gray-500">({{ user.email }})</span>
-                </h3>
-                <p class="text-sm text-gray-600">📞 {{ user.phone || 'Tidak tersedia' }}</p>
-                <p class="text-sm text-gray-600">📍 {{ user.address || 'Alamat tidak tersedia' }}</p>
-              </div>
-
-              <!-- Toggle -->
-              <button
-                @click="toggleUserTransactions(user._id)"
-                class="text-sm text-indigo-600 hover:underline focus:outline-none"
-              >
-                <span v-if="expandedUserId === user._id">⬆️ Sembunyikan Pesanan</span>
-                <span v-else>⬇️ Lihat Pesanan</span>
-              </button>
-            </div>
-
-            <!-- Daftar transaksi -->
-            <div v-if="expandedUserId === user._id">
-              <div class="mt-4 space-y-3">
-                <!-- Transaksi belum selesai -->
-                <div
-                  v-for="trx in user.transactions.filter(t => t.statusPengiriman !== 'sampai')"
-                  :key="trx._id"
-                  class="border rounded p-3 bg-gray-50 flex flex-col md:flex-row md:items-center md:justify-between"
-                >
-                  <div class="space-y-1">
-                    <p class="text-sm font-medium">🛒 Total: Rp {{ formatPrice(trx.total) }}</p>
-                    <p class="text-sm text-gray-600">
-                      📦 Status:
-                      <select
-                        v-model="trx.statusPengiriman"
-                        @change="updateStatus(trx._id, trx.statusPengiriman)"
-                        class="ml-2 border rounded px-3 py-1 text-sm min-w-[150px]"
-                      >
-                        <option value="diproses">Diproses</option>
-                        <option value="dikirim">Dikirim</option>
-                      </select>
-                    </p>
-                    <p class="text-sm text-gray-500">
-                      🕒 {{ new Date(trx.createdAt).toLocaleString('id-ID') }}
-                    </p>
-                  </div>
-                  <div class="mt-4 md:mt-0 md:text-right w-full md:w-1/3 text-center">
-                    <p class="text-lg font-bold text-indigo-700">
-                      📄 {{ trx.midtransOrderId || 'Tanpa ID Midtrans' }}
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Transaksi selesai -->
-                <div
-                  v-for="trx in user.transactions.filter(t => t.statusPengiriman === 'sampai')"
-                  :key="trx._id"
-                  class="border rounded p-3 bg-green-50 flex flex-col md:flex-row md:items-center md:justify-between"
-                >
-                  <div class="space-y-1">
-                    <p class="text-sm font-medium">🛒 Total: Rp {{ formatPrice(trx.total) }}</p>
-                    <p class="text-sm text-green-700 font-semibold">📦 Status: Sampai (selesai)</p>
-                    <p class="text-sm text-gray-500">
-                      🕒 {{ new Date(trx.createdAt).toLocaleString('id-ID') }}
-                    </p>
-                  </div>
-                  <div class="mt-4 md:mt-0 md:text-right w-full md:w-1/3 text-center">
-                    <p class="text-lg font-bold text-green-700">
-                      📄 {{ trx.midtransOrderId || 'Tanpa ID Midtrans' }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <p v-else class="text-gray-500">Belum ada data user.</p>
-      </div>
     </div>
   </div>
 </template>
@@ -226,19 +161,18 @@ export default {
   data() {
     return {
       products: [],
-      users: [],
       form: {
         name: '',
         price: null,
         unit: '100g',
         image: '',
-        description: ''
+        description: '',
+        category: ''
       },
       isEditing: false,
       editId: null,
       successMessage: '',
       errorMessage: '',
-      expandedUserId: null,
       searchQuery: ''
     };
   },
@@ -261,33 +195,13 @@ export default {
         console.error('Gagal memuat produk:', err);
       }
     },
-    async fetchUsersWithTransactions() {
-      try {
-        const token = sessionStorage.getItem('admin_token');
-        const res = await axios.get('http://localhost:5000/api/auth/all-users-with-transactions', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        this.users = res.data;
-      } catch (err) {
-        console.error('Gagal memuat user:', err);
-      }
-    },
-    async updateStatus(transactionId, status) {
-      try {
-        const token = sessionStorage.getItem('admin_token');
-        await axios.put(`http://localhost:5000/api/transactions/status/${transactionId}`, {
-          statusPengiriman: status
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        this.successMessage = 'Status pengiriman diperbarui.';
-      } catch (err) {
-        console.error('Gagal update status:', err);
-        this.errorMessage = 'Gagal update status pengiriman.';
-      }
-    },
     async submitProduct() {
-      try {
+      if (!this.form.category) {
+    this.errorMessage = 'Kategori harus dipilih.';
+    this.successMessage = '';
+    return;
+  
+    } try {
         const token = sessionStorage.getItem('admin_token');
         const res = await axios.post('http://localhost:5000/api/products', this.form, {
           headers: { Authorization: `Bearer ${token}` }
@@ -339,7 +253,14 @@ export default {
       this.resetForm();
     },
     resetForm() {
-      this.form = { name: '', price: null, unit: '100g', image: '', description: '' };
+      this.form = {
+        name: '',
+        price: null,
+        unit: '100g',
+        image: '',
+        description: '',
+        category: ''
+      };
       this.isEditing = false;
       this.editId = null;
     },
@@ -358,15 +279,11 @@ export default {
     logout() {
       sessionStorage.removeItem('admin_token');
       this.$router.push('/login-admin');
-    },
-    toggleUserTransactions(userId) {
-      this.expandedUserId = this.expandedUserId === userId ? null : userId;
     }
   },
   mounted() {
     this.checkAuth();
     this.fetchProducts();
-    this.fetchUsersWithTransactions();
   }
 };
 </script>

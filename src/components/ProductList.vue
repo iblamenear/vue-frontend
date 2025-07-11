@@ -11,12 +11,12 @@
       {{ error }}
     </div>
 
-    <div v-else-if="!products.length" class="py-8 text-center">
-      <p class="text-lg text-gray-600">Tidak ada produk tersedia saat ini.</p>
+    <div v-else-if="!filteredProducts.length" class="py-8 text-center">
+      <p class="text-lg text-gray-600">Tidak ada produk ditemukan.</p>
     </div>
 
     <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      <div v-for="product in products" :key="product._id" class="overflow-hidden bg-white rounded-lg shadow-md">
+      <div v-for="product in filteredProducts" :key="product._id" class="overflow-hidden bg-white rounded-lg shadow-md">
         <div class="h-48 overflow-hidden bg-neutral-50">
           <img 
             :src="product.image || '/img/meat-placeholder.jpg'" 
@@ -48,12 +48,31 @@ import axios from 'axios';
 
 export default {
   name: 'ProductList',
+  props: {
+    searchQuery: {
+      type: String,
+      default: ''
+    },
+    category: {
+      type: String,
+      default: ''
+    }
+  },
   data() {
     return {
       products: [],
       loading: true,
       error: null
     };
+  },
+  computed: {
+    filteredProducts() {
+      return this.products.filter(product => {
+        const matchName = product.name.toLowerCase().includes(this.searchQuery.toLowerCase());
+        const matchCategory = this.category === '' || product.category === this.category;
+        return matchName && matchCategory;
+      });
+    }
   },
   mounted() {
     this.fetchProducts();
@@ -86,14 +105,12 @@ export default {
       }
 
       try {
-        // Ambil keranjang dari backend
         const res = await axios.get('http://localhost:5000/api/cart', {
           headers: { Authorization: `Bearer ${token}` }
         });
 
         const currentCart = res.data.cart || [];
 
-        // Cek apakah produk sudah ada di keranjang
         const exists = currentCart.find(item => item._id === product._id);
 
         if (exists) {
@@ -101,7 +118,6 @@ export default {
           return;
         }
 
-        // Tambahkan item baru
         const newItem = {
           _id: product._id,
           quantity: 1,
@@ -110,7 +126,6 @@ export default {
 
         const updatedCart = [...currentCart, newItem];
 
-        // Simpan ke backend (GUNAKAN PUT SESUAI BACKEND)
         await axios.put('http://localhost:5000/api/cart', {
           cart: updatedCart
         }, {
